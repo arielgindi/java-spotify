@@ -1,5 +1,8 @@
 package spotify;
 
+import org.springframework.stereotype.Component;
+
+@Component("mySong")
 public class Song {
 	private String name;
 	private String artistName;
