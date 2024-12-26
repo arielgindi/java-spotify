@@ -1,18 +1,19 @@
 package spotify;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import spotify.config.AppConfig;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class MainApp {
     public static void main(String[] args) {
-        AnnotationConfigApplicationContext context =
-                new AnnotationConfigApplicationContext(AppConfig.class);
+        // יצירת הקונטיינר
+    	ClassPathXmlApplicationContext context =new ClassPathXmlApplicationContext("applicationContext.xml");
 
+
+        // משיכת השירות מהקונטיינר
         SpotifyService spotifyService = context.getBean("spotifyService", SpotifyService.class);
 
         // יצירת שירים
         Song song1 = new Song("Imagine", "John Lennon", "Pop", 3.15);
-        Song song2 = new Song("Bohemian Rhapsody", "Queen", "Rock", 5.55);
+        Song song2 = new Song("Bohemian Rhapsody","Bohemian Rhapsody", "Queen", 5.55);
 
         // הוספת שירים
         spotifyService.addSong(song1);
