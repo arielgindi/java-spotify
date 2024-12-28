@@ -1,14 +1,16 @@
 package spotify;
-
 import java.io.Serializable;
 
-public class Song implements Serializable {
+public class Song implements Serializable,Comparable<Song> {
     private static final long serialVersionUID = 1L; // מזהה גרסה לסריאליזציה
 
+    
+    private int songID;
     private String name;
     private String artistName;
     private String genre;
     private double length;
+    
 
     // בנאי
     public Song(String name, String artistName, String genre, double length) {
@@ -18,6 +20,9 @@ public class Song implements Serializable {
         this.length = length;
     }
 
+   
+
+    
     // Getters and Setters
     public String getName() {
         return name;
@@ -29,6 +34,9 @@ public class Song implements Serializable {
 
     public String getArtistName() {
         return artistName;
+    }
+    public int getSongID() {
+        return songID;
     }
 
     public void setArtistName(String artistName) {
@@ -50,11 +58,20 @@ public class Song implements Serializable {
     public void setLength(double length) {
         this.length = length;
     }
+    
+    public void setSongID(int songID) {
+        this.songID = songID;
+    }
 
-    // מתודות עזר
     @Override
     public String toString() {
-        return "Song{name='" + name + "', artistName='" + artistName + "', genre='" + genre + "', length=" + length + "}";
+        return "Song{" +
+                "songID=" + songID +
+                ", name='" + name + '\'' +
+                ", artistName='" + artistName + '\'' +
+                ", genre='" + genre + '\'' +
+                ", length=" + length +
+                '}';
     }
 
     @Override
@@ -71,4 +88,13 @@ public class Song implements Serializable {
     public int hashCode() {
         return name != null ? name.hashCode() : 0;
     }
+
+	@Override
+	public int compareTo(Song s) {
+		if(s==null)return 0;
+		if(s.songID==this.songID)return 1;
+		return 0;
+	}
+    
+    
 }
