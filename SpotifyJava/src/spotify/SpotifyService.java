@@ -2,10 +2,13 @@ package spotify;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import custom_exceptions.SongNotFoundException;
 import spotify.dao.SongDao;
 
 import java.util.List;
 import java.util.Random;
+import custom_exceptions.MaxSongsException;
 
 @Service
 public class SpotifyService {
@@ -48,7 +51,7 @@ public class SpotifyService {
             existingSong.setLength(song.getLength());
             songDao.update(existingSong); // Update the song in DAO
         } else {
-            throw new Exception("Song with ID " + song.getSongID() + " not found.");
+            throw new SongNotFoundException("Song with ID " + song.getSongID() + " not found.");
         }
     }
 
@@ -57,7 +60,7 @@ public class SpotifyService {
         if (song != null) {
             songDao.delete(id); // Use ID for deletion
         } else {
-            throw new Exception("Song with ID " + id + " not found.");
+            throw new SongNotFoundException("Song with ID " + id + " not found.");
         }
     }
 
@@ -71,5 +74,11 @@ public class SpotifyService {
 
     public void loadSongsFromFile() throws Exception {
         songDao.loadFromFile();
+    }
+    
+    public void validateMaxSongs(int maxSongs) throws Exception {
+        if (getAllSongs().size() >= maxSongs) {
+            throw new MaxSongsException("Cannot save more than " + maxSongs + " songs.");
+        }
     }
 }
