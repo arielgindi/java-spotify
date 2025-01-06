@@ -147,21 +147,30 @@ public class SpotifyService {
         songs.sort((s1, s2) -> s1.getName().compareToIgnoreCase(s2.getName()));
         songDao.replaceAll(songs); // Save the sorted list back to the DAO
         saveSongsToFile(); // Persist changes to file
+        songs.forEach(song -> System.out.println(song ));
+        System.out.println("[INFO] Songs sorted by song name and saved.");
+
+
     }
 
     public void sortSongsByArtistAndSave() throws Exception {
         List<Song> songs = songDao.findAll();
         songs.sort((s1, s2) -> s1.getArtistName().compareToIgnoreCase(s2.getArtistName())); // Sorting by artist name
         songDao.replaceAll(songs); // Replace in-memory list
+        songs.forEach(song -> System.out.println(song ));
+
         saveSongsToFile(); // Save sorted list to file
-        System.out.println("[DEBUG] Sorted Songs by Artist:");
-        songs.forEach(System.out::println);
+        System.out.println("[INFO] Songs sorted by artist name and saved.");
+
+        
     }
     public void sortSongsByLengthAndSave() throws Exception {
         List<Song> songs = songDao.findAll();
         songs.sort((s1, s2) -> Double.compare(s1.getLength(), s2.getLength())); // Sort by length
         songDao.replaceAll(songs); // Replace in-memory list with sorted list
         saveSongsToFile(); // Persist changes to file
+        songs.forEach(song -> System.out.println(song ));
+
         System.out.println("[INFO] Songs sorted by length and saved.");
     }
 
@@ -170,6 +179,8 @@ public class SpotifyService {
         songs.sort((s1, s2) -> s1.getGenre().compareToIgnoreCase(s2.getGenre())); // Sort by genre
         songDao.replaceAll(songs); // Replace in-memory list with sorted list
         saveSongsToFile(); // Persist changes to file
+        songs.forEach(song -> System.out.println(song ));
+
         System.out.println("[INFO] Songs sorted by genre and saved.");
     }
 
