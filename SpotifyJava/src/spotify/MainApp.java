@@ -18,15 +18,20 @@ public class MainApp {
 
             while (running) {
                 // Display menu options
-                System.out.println("\nMenu:");
-                System.out.println("1. Show all songs");
-                System.out.println("2. Show single song");
-                System.out.println("3. Add a song");
-                System.out.println("4. Update a song");
-                System.out.println("5. Delete a song");
-                System.out.println("6. Save songs to file");
-                System.out.println("7. Load songs from file");
-                System.out.println("0. Exit");
+            	System.out.println("\nMenu:");
+            	System.out.println("1. Show all songs");
+            	System.out.println("2. Show single song");
+            	System.out.println("3. Add a song");
+            	System.out.println("4. Update a song");
+            	System.out.println("5. Delete a song");
+            	System.out.println("6. Save songs to file");
+            	System.out.println("7. Load songs from file");
+            	System.out.println("8. Sort songs by name and save order");
+            	System.out.println("9. Sort songs by artist and save order");
+            	System.out.println("10. Sort songs by length and save order");
+            	System.out.println("11. Sort songs by genre and save order");
+            	System.out.println("0. Exit");
+
                 System.out.print("Enter your choice: ");
 
                 int choice = scanner.nextInt();
@@ -103,8 +108,7 @@ public class MainApp {
                             int id = scanner.nextInt();
                             scanner.nextLine(); // Consume newline
                             spotifyService.deleteSong(id);
-                                System.out.println("Song deleted successfully.");
-                     
+                            System.out.println("Song deleted successfully.");
                             break;
                         }
                         case 6: { // Save songs to file
@@ -117,6 +121,27 @@ public class MainApp {
                             System.out.println("Songs loaded from file.");
                             break;
                         }
+                        case 8: { // Sort songs by name and save order
+                            spotifyService.sortSongsByNameAndSave();
+                            System.out.println("Songs sorted by name and saved.");
+                            break;
+                        }
+                        case 9: { // Sort songs by artist and save order
+                            spotifyService.sortSongsByArtistAndSave();
+                            System.out.println("Songs sorted by artist and saved.");
+                            break;
+                        }
+                        case 10: { // Sort songs by length and save order
+                            spotifyService.sortSongsByLengthAndSave();
+                            System.out.println("Songs sorted by length and saved.");
+                            break;
+                        }
+                        case 11: { // Sort songs by genre and save order
+                            spotifyService.sortSongsByGenreAndSave();
+                            System.out.println("Songs sorted by genre and saved.");
+                            break;
+                        }
+                  
                         case 0: { // Exit
                             running = false;
                             System.out.println("Exiting the program.");

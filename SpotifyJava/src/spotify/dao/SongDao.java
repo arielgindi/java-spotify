@@ -12,4 +12,6 @@ public interface SongDao {
     Song getById(int id) throws Exception; // Get a song by ID
     void saveToFile() throws Exception; // Save songs to file
     void loadFromFile() throws Exception; // Load songs from file
+    void replaceAll(List<Song> songs) throws Exception;
+
 }

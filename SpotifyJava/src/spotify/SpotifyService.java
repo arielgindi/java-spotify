@@ -2,34 +2,45 @@ package spotify;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import custom_exceptions.SongNotFoundException;
+import custom_exceptions.MaxSongsException;
 import spotify.dao.SongDao;
 
 import java.util.List;
 import java.util.Random;
-import custom_exceptions.MaxSongsException;
+import java.util.stream.Collectors;
 
 @Service
 public class SpotifyService {
+    private static final int MAX_SONGS = 100; // קבוע למספר המקסימלי של השירים
+
     private final SongDao songDao;
     private final Random random = new Random();
 
     @Autowired
     public SpotifyService(SongDao songDao) {
         this.songDao = songDao;
+        try {
+            loadSongsFromFile(); // טעינת השירים מהקובץ בעת עליית האפליקציה
+            logStartup();
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to load songs on startup: " + e.getMessage());
+        }
     }
 
     public void addSong(Song song) throws Exception {
+        validateMaxSongs(MAX_SONGS); // שימוש בקבוע למספר המקסימלי
         int newID = generateUniqueID();
         song.setSongID(newID);
         songDao.save(song);
+        saveSongsToFile(); // שמירה אוטומטית לאחר הוספת שיר
+        System.out.println("[INFO] Song added successfully: " + song);
     }
 
     private int generateUniqueID() throws Exception {
         int id;
         do {
-            id = 100000 + random.nextInt(900000);
+            id = 100000 + random.nextInt(900000); // יצירת מזהה ייחודי
         } while (isDuplicateID(id));
         return id;
     }
@@ -39,7 +50,9 @@ public class SpotifyService {
     }
 
     public List<Song> getAllSongs() throws Exception {
-        return songDao.findAll();
+        return songDao.findAll().stream()
+                .sorted((s1, s2) -> s1.getName().compareToIgnoreCase(s2.getName())) // מיון לפי שם שיר
+                .collect(Collectors.toList());
     }
 
     public void updateSong(Song song) throws Exception {
@@ -49,7 +62,9 @@ public class SpotifyService {
             existingSong.setArtistName(song.getArtistName());
             existingSong.setGenre(song.getGenre());
             existingSong.setLength(song.getLength());
-            songDao.update(existingSong); // Update the song in DAO
+            songDao.update(existingSong); // עדכון השיר ב-DAO
+            saveSongsToFile(); // שמירה אוטומטית לאחר עדכון
+            System.out.println("[INFO] Song updated successfully: " + existingSong);
         } else {
             throw new SongNotFoundException("Song with ID " + song.getSongID() + " not found.");
         }
@@ -58,27 +73,106 @@ public class SpotifyService {
     public void deleteSong(int id) throws Exception {
         Song song = songDao.getById(id);
         if (song != null) {
-            songDao.delete(id); // Use ID for deletion
+            songDao.delete(id); // מחיקת שיר לפי ID
+            saveSongsToFile(); // שמירה אוטומטית לאחר מחיקה
+            System.out.println("[INFO] Song deleted successfully: " + song);
         } else {
             throw new SongNotFoundException("Song with ID " + id + " not found.");
         }
     }
 
     public Song getSongById(int id) throws Exception {
-        return songDao.getById(id);
+        Song song = songDao.getById(id);
+        if (song == null) {
+            throw new SongNotFoundException("Song with ID " + id + " not found.");
+        }
+        return song;
     }
 
     public void saveSongsToFile() throws Exception {
-        songDao.saveToFile();
+        songDao.saveToFile(); // שמירת השירים לקובץ
+        System.out.println("[INFO] Songs saved to file.");
     }
 
     public void loadSongsFromFile() throws Exception {
-        songDao.loadFromFile();
+        songDao.loadFromFile(); // טעינת השירים מהקובץ
+        System.out.println("[INFO] Songs loaded from file.");
     }
-    
-    public void validateMaxSongs(int maxSongs) throws Exception {
-        if (getAllSongs().size() >= maxSongs) {
-            throw new MaxSongsException("Cannot save more than " + maxSongs + " songs.");
+
+    public void validateMaxSongs(int maxSongs) throws MaxSongsException {
+        try {
+            if (getAllSongs().size() >= maxSongs) {
+                throw new MaxSongsException("Cannot save more than " + maxSongs + " songs.");
+            }
+        } catch (Exception e) {
+            throw new MaxSongsException("Error while validating max songs: " + e.getMessage());
         }
     }
+
+
+    public List<Song> searchSongsByGenre(String genre) throws Exception {
+        return songDao.findAll().stream()
+                .filter(song -> song.getGenre().equalsIgnoreCase(genre))
+                .sorted((s1, s2) -> s1.getName().compareToIgnoreCase(s2.getName())) // מיון לפי שם שיר
+                .collect(Collectors.toList());
+    }
+
+    public List<Song> searchSongsByArtist(String artist) throws Exception {
+        return songDao.findAll().stream()
+                .filter(song -> song.getArtistName().equalsIgnoreCase(artist))
+                .sorted((s1, s2) -> s1.getName().compareToIgnoreCase(s2.getName())) // מיון לפי שם שיר
+                .collect(Collectors.toList());
+    }
+
+    public void logStartup() {
+        try {
+            System.out.println("[INFO] Application started. Songs loaded: " + songDao.findAll().size());
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to load songs during startup: " + e.getMessage());
+        }
+    }
+
+
+    public void logShutdown() {
+        System.out.println("[INFO] Application shutting down. Saving songs to file.");
+        try {
+            saveSongsToFile();
+        } catch (Exception e) {
+            System.err.println("[ERROR] Failed to save songs on shutdown: " + e.getMessage());
+        }
+    }
+    
+    public void sortSongsByNameAndSave() throws Exception {
+        List<Song> songs = songDao.findAll();
+        songs.sort((s1, s2) -> s1.getName().compareToIgnoreCase(s2.getName()));
+        songDao.replaceAll(songs); // Save the sorted list back to the DAO
+        saveSongsToFile(); // Persist changes to file
+    }
+
+    public void sortSongsByArtistAndSave() throws Exception {
+        List<Song> songs = songDao.findAll();
+        songs.sort((s1, s2) -> s1.getArtistName().compareToIgnoreCase(s2.getArtistName())); // Sorting by artist name
+        songDao.replaceAll(songs); // Replace in-memory list
+        saveSongsToFile(); // Save sorted list to file
+        System.out.println("[DEBUG] Sorted Songs by Artist:");
+        songs.forEach(System.out::println);
+    }
+    public void sortSongsByLengthAndSave() throws Exception {
+        List<Song> songs = songDao.findAll();
+        songs.sort((s1, s2) -> Double.compare(s1.getLength(), s2.getLength())); // Sort by length
+        songDao.replaceAll(songs); // Replace in-memory list with sorted list
+        saveSongsToFile(); // Persist changes to file
+        System.out.println("[INFO] Songs sorted by length and saved.");
+    }
+
+    public void sortSongsByGenreAndSave() throws Exception {
+        List<Song> songs = songDao.findAll();
+        songs.sort((s1, s2) -> s1.getGenre().compareToIgnoreCase(s2.getGenre())); // Sort by genre
+        songDao.replaceAll(songs); // Replace in-memory list with sorted list
+        saveSongsToFile(); // Persist changes to file
+        System.out.println("[INFO] Songs sorted by genre and saved.");
+    }
+
+
+
 }

@@ -57,9 +57,13 @@ public class InMemorySongDao implements SongDao, Serializable {
     @Override
     public void saveToFile() throws Exception {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DEFAULT_FILE_PATH))) {
-            oos.writeObject(songs);
+            oos.writeObject(new ArrayList<>(songs)); // Serialize the current in-memory list
+            System.out.println("[INFO] Songs successfully saved to file.");
+        } catch (IOException e) {
+            throw new Exception("Failed to save songs to file: " + e.getMessage());
         }
     }
+
 
     @Override
     public void loadFromFile() throws Exception {
@@ -67,9 +71,24 @@ public class InMemorySongDao implements SongDao, Serializable {
         if (file.exists()) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(DEFAULT_FILE_PATH))) {
                 List<Song> loadedSongs = (List<Song>) ois.readObject();
-                songs.clear();
-                songs.addAll(loadedSongs);
+                songs.clear(); // Clear the existing in-memory list
+                songs.addAll(loadedSongs); // Add all loaded songs
+                System.out.println("[INFO] Songs successfully loaded from file.");
+            } catch (IOException | ClassNotFoundException e) {
+                throw new Exception("Failed to load songs from file: " + e.getMessage());
             }
+        } else {
+            System.out.println("[INFO] No file found. Starting with an empty song list.");
         }
     }
+
+
+    @Override
+    public void replaceAll(List<Song> newSongs) {
+        songs.clear();
+        songs.addAll(newSongs); // Replace in-memory list with new sorted list
+    }
+
+
+
 }
